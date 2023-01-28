@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:front/Navbar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -8,7 +9,15 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
+SharedPreferences? prefs;
+
 class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+    SharedPreferences.getInstance().then((value) => prefs = value);
+  }
+
   @override
   Widget build(BuildContext context) {
     var height = MediaQuery.of(context).size.height;
@@ -16,11 +25,12 @@ class _HomePageState extends State<HomePage> {
     var isWide = width >= 1200;
     var isTablet = width < 1200 && width > 680;
     var isMobile = width <= 680;
+    var isLoggedIn = prefs!.containsKey("token");
     return Scaffold(
       resizeToAvoidBottomInset: true,
       body: Column(
         children: [
-          Navbar(),
+          Navbar(isLoggedIn: isLoggedIn),
           Expanded(
             child: Container(
                 decoration: BoxDecoration(

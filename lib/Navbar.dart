@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:front/HomePage.dart';
+import 'package:front/LoginPage.dart';
+
+import 'SignUpPage.dart';
 
 class Navbar extends StatelessWidget {
-  const Navbar({Key? key}) : super(key: key);
+  bool? isLoggedIn;
+  Navbar({Key? key, this.isLoggedIn}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +42,9 @@ class Navbar extends StatelessWidget {
                           Row(
                             children: [
                               OutlinedButton(
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    Navigator.pushNamed(context, '/login');
+                                  },
                                   style: OutlinedButton.styleFrom(
                                       padding: EdgeInsets.all(20),
                                       side: BorderSide(
@@ -47,7 +54,9 @@ class Navbar extends StatelessWidget {
                                       foregroundColor: Colors.white),
                                   child: Text("ورود")),
                               ElevatedButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  Navigator.pushNamed(context, '/register');
+                                },
                                 child: Text("ثبت نام"),
                                 style: ElevatedButton.styleFrom(
                                     padding: EdgeInsets.all(20),
@@ -76,7 +85,9 @@ class Navbar extends StatelessWidget {
                                 textStyle: TextStyle(
                                     fontSize: 16, fontFamily: "B Yekan"),
                                 foregroundColor: Colors.white),
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.pushNamed(context, '/');
+                            },
                             child: Text("صفحه اصلی"),
                           )
                         ],
