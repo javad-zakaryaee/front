@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:front/HomePage.dart';
 import 'package:front/LoginPage.dart';
+import 'package:front/profile.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'SignUpPage.dart';
 
 class Navbar extends StatelessWidget {
   bool? isLoggedIn;
-  Navbar({Key? key, this.isLoggedIn}) : super(key: key);
+  String? username;
+  SharedPreferences? prefs;
+  Navbar({Key? key, this.isLoggedIn, this.username, this.prefs})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -39,32 +44,64 @@ class Navbar extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          Row(
-                            children: [
-                              OutlinedButton(
+                          Visibility(
+                            visible: !isLoggedIn!,
+                            child: Row(
+                              children: [
+                                OutlinedButton(
+                                    onPressed: () {
+                                      Navigator.pushNamed(context, '/login');
+                                    },
+                                    style: OutlinedButton.styleFrom(
+                                        padding: EdgeInsets.all(20),
+                                        side: BorderSide(
+                                            width: 2.0, color: Colors.pink),
+                                        textStyle: TextStyle(
+                                            fontSize: 16,
+                                            fontFamily: "B Yekan"),
+                                        foregroundColor: Colors.white),
+                                    child: Text("ورود")),
+                                ElevatedButton(
                                   onPressed: () {
-                                    Navigator.pushNamed(context, '/login');
+                                    Navigator.pushNamed(context, '/register');
                                   },
-                                  style: OutlinedButton.styleFrom(
+                                  child: Text("ثبت نام"),
+                                  style: ElevatedButton.styleFrom(
                                       padding: EdgeInsets.all(20),
-                                      side: BorderSide(
-                                          width: 2.0, color: Colors.pink),
                                       textStyle: TextStyle(
                                           fontSize: 16, fontFamily: "B Yekan"),
-                                      foregroundColor: Colors.white),
-                                  child: Text("ورود")),
-                              ElevatedButton(
-                                onPressed: () {
-                                  Navigator.pushNamed(context, '/register');
-                                },
-                                child: Text("ثبت نام"),
-                                style: ElevatedButton.styleFrom(
-                                    padding: EdgeInsets.all(20),
-                                    textStyle: TextStyle(
-                                        fontSize: 16, fontFamily: "B Yekan"),
-                                    backgroundColor: Colors.pink),
-                              )
-                            ],
+                                      backgroundColor: Colors.pink),
+                                )
+                              ],
+                            ),
+                          ),
+                          Visibility(
+                            visible: isLoggedIn!,
+                            child: Row(
+                              children: [
+                                ElevatedButton(
+                                  onPressed: () {
+                                    prefs!.remove("id");
+                                    prefs!.remove("token");
+                                    Navigator.of(context).pushNamed("/");
+                                  },
+                                  child: Text("خروج"),
+                                  style: ElevatedButton.styleFrom(
+                                      padding: EdgeInsets.all(20),
+                                      textStyle: TextStyle(
+                                          fontSize: 16, fontFamily: "B Yekan"),
+                                      backgroundColor: Colors.pink),
+                                ),
+                                SizedBox(
+                                  width: width * 0.02,
+                                ),
+                                Text(
+                                  username ?? "",
+                                  style: TextStyle(
+                                      fontSize: 18, fontFamily: "B Yekan"),
+                                )
+                              ],
+                            ),
                           ),
                           TextButton(
                               style: TextButton.styleFrom(
@@ -104,7 +141,7 @@ class Navbar extends StatelessWidget {
                         ),
                         Text(
                           "بارفیکس",
-                          style: TextStyle(fontSize: 32),
+                          style: TextStyle(fontSize: 32, fontFamily: "B Yekan"),
                         )
                       ],
                     ),

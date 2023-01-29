@@ -1,19 +1,42 @@
-import 'package:flutter/material.dart';
-import 'package:front/Navbar.dart';
-import 'API.dart';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+
+import 'package:flutter/material.dart';
+import 'package:front/API.dart';
+import 'package:front/AllPlansPage.dart';
+import 'package:front/Navbar.dart';
+import 'package:front/PlanPage.dart';
+import 'package:front/models/trainee.dart';
+import 'package:front/models/user.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart';
 
 class TraineePage extends StatefulWidget {
-  const TraineePage({Key? key}) : super(key: key);
+  User? user;
+  SharedPreferences prefs;
+  TraineePage({Key? key, this.user, required this.prefs}) : super(key: key);
 
   @override
   _TraineePageState createState() => _TraineePageState();
 }
 
+User? user;
+Trainee? trainee;
+
 class _TraineePageState extends State<TraineePage> {
-  final basePath = 'localhost:8081/api/v1';
-  final userPath = '/user';
+  Future<void> loadUserAndTrainee() async {
+    Response traineeResponse = await ApiService().getTrainee(
+        widget.prefs.getString("token") ?? "",
+        widget.prefs.getString("id") ?? "");
+    Map<String, dynamic> mapResponse =
+        (json.decode(utf8.decode(traineeResponse.bodyBytes)));
+    user = User.fromJson(mapResponse['user']);
+    trainee = Trainee(
+        user: user!,
+        height: mapResponse['height'],
+        weight: mapResponse['weight'],
+        goal: mapResponse['goal']);
+  }
+
   @override
   Widget build(BuildContext context) {
     var height = MediaQuery.of(context).size.height;
@@ -21,52 +44,93 @@ class _TraineePageState extends State<TraineePage> {
     var isWide = width >= 1200;
     var isTablet = width < 1200 && width > 680;
     var isMobile = width <= 680;
-    var formKey = GlobalKey<FormState>();
-    var emailController = TextEditingController();
-    var passwordController = TextEditingController();
     return Scaffold(
-      resizeToAvoidBottomInset: true,
-      body: Column(children: [
-        Navbar(),
-        Expanded(
-            child: Container(
-                decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                      Color.fromARGB(255, 56, 71, 151),
-                      Color(0xFF277AF6)
-                    ])),
-                child: Center(
-                    child: Card(
-                  elevation: 100,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25)),
-                  child: Container(
-                    width: width * 0.25,
-                    height: height * 0.45,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Container(
-                          alignment: Alignment.center,
-                          width: double.infinity,
-                          height: height * 0.075,
-                          child: const Text(
-                            'صفحه ورزشکار',
-                            textDirection: TextDirection.ltr,
-                            style: TextStyle(
-                                fontFamily: "B Yekan",
-                                fontSize: 20,
-                                color: Colors.black),
-                          ),
-                        ),
-                      ],
+      body: Center(
+        child: FutureBuilder(
+          future: loadUserAndTrainee(),
+          builder: (context, snapshot) {
+            switch (snapshot.connectionState) {
+              case ConnectionState.waiting:
+                return CircularProgressIndicator();
+
+              default:
+                bool hasPlan = trainee!.plan != null;
+                return (Column(
+                  children: [
+                    Navbar(
+                      isLoggedIn: true,
+                      username: '${user!.firstName} ${user!.lastName}',
+                      prefs: widget.prefs,
                     ),
-                  ),
-                ))))
-      ]),
+                    Card(
+                        elevation: 50,
+                        child: Container(
+                          width: width * 95,
+                          height: height * 0.8,
+                          child: Column(
+                            children: [
+                              Text(
+                                "مشخصات " +
+                                    user!.firstName +
+                                    " " +
+                                    user!.lastName,
+                                textDirection: TextDirection.rtl,
+                                style: TextStyle(
+                                    color: Colors.black, fontFamily: "B Yekan"),
+                              ),
+                              Text(
+                                "هدف: " + trainee!.goal,
+                                textDirection: TextDirection.rtl,
+                                style: TextStyle(color: Colors.black),
+                              ),
+                              Text(
+                                "وزن فعلی: " + trainee!.weight.toString(),
+                                textDirection: TextDirection.rtl,
+                                style: TextStyle(color: Colors.black),
+                              ),
+                              Text(
+                                "قد فعلی: " + trainee!.height.toString(),
+                                textDirection: TextDirection.rtl,
+                                style: TextStyle(color: Colors.black),
+                              ),
+                              Visibility(
+                                  visible: hasPlan,
+                                  child: ElevatedButton(
+                                      onPressed: () {
+                                        Navigator.of(context).push(
+                                            PageRouteBuilder(
+                                                pageBuilder: ((context,
+                                                        animation,
+                                                        secondaryAnimation) =>
+                                                    PlanPage(
+                                                        planId:
+                                                            trainee!.plan!.id,
+                                                        userId: user!.id!))));
+                                      },
+                                      child: Text("show plan"))),
+                              Visibility(
+                                  visible: !hasPlan,
+                                  child: ElevatedButton(
+                                      onPressed: () {
+                                        Navigator.of(context).push(
+                                            PageRouteBuilder(
+                                                pageBuilder: ((context,
+                                                        animation,
+                                                        secondaryAnimation) =>
+                                                    AllPlansPage(
+                                                      user: user,
+                                                    ))));
+                                      },
+                                      child: Text("get plan")))
+                            ],
+                          ),
+                        ))
+                  ],
+                ));
+            }
+          },
+        ),
+      ),
     );
   }
 }

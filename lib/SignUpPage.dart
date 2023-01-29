@@ -2,12 +2,15 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:front/API.dart';
+import 'package:front/CoachPage.dart';
 import 'package:front/Navbar.dart';
+import 'package:front/TraineePage.dart';
 import 'package:front/models/coach.dart';
 import 'package:front/models/gym.dart';
 import 'package:front/models/trainee.dart';
 import 'package:front/models/user.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:shared_preferences/shared_preferences.dart';
 
 List<String> roleList = <String>['انتخاب', 'مربی', 'ورزشکار'];
 
@@ -18,8 +21,11 @@ class SignUpPage extends StatefulWidget {
   _SignUpPageState createState() => _SignUpPageState();
 }
 
+SharedPreferences? prefs;
+
 class _SignUpPageState extends State<SignUpPage> {
   late DateTime selectedDate;
+
   Future<void> _selectDate(BuildContext context) async {
     selectedDate = DateTime.now();
     final DateTime? picked = await showDatePicker(
@@ -53,9 +59,12 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   void initState() {
     super.initState();
+    SharedPreferences.getInstance()
+        .then((value) => setState(() => prefs = value));
     ApiService().getAllGyms().then((value) {
       setState(() {
-        List<dynamic> gymMap = jsonDecode(value);
+        List<dynamic> gymMap = json.decode(utf8.decode(value.bodyBytes));
+
         gymMap.forEach((element) {
           gymData.add(Gym.fromJson(element));
           gymNames.add(Gym.fromJson(element).name);
@@ -76,7 +85,9 @@ class _SignUpPageState extends State<SignUpPage> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       body: Column(children: [
-        Navbar(),
+        Navbar(
+          isLoggedIn: false,
+        ),
         Container(
             height: height * 0.89,
             decoration: const BoxDecoration(
@@ -95,22 +106,22 @@ class _SignUpPageState extends State<SignUpPage> {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(25)),
                 child: SingleChildScrollView(
-                  child: Container(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Container(
-                          alignment: Alignment.center,
-                          height: height * 0.075,
-                          color: Colors.pink,
-                          child: const Text(
-                            'ثبت حساب جدید',
-                            textDirection: TextDirection.ltr,
-                            style:
-                                TextStyle(fontFamily: "B Yekan", fontSize: 20),
-                          ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      Container(
+                        alignment: Alignment.center,
+                        height: height * 0.075,
+                        color: Colors.pink,
+                        child: const Text(
+                          'ثبت حساب جدید',
+                          textDirection: TextDirection.ltr,
+                          style: TextStyle(fontFamily: "B Yekan", fontSize: 20),
                         ),
-                        Form(
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Form(
                           key: formKey,
                           child: Column(
                             children: [
@@ -137,6 +148,9 @@ class _SignUpPageState extends State<SignUpPage> {
                               // SizedBox(
                               //   width: width * 0.02,
                               // ),
+                              SizedBox(
+                                height: height * 0.02,
+                              ),
                               TextFormField(
                                 controller: lastNameController,
                                 textAlign: TextAlign.right,
@@ -444,9 +458,10 @@ class _SignUpPageState extends State<SignUpPage> {
                                         role: role,
                                         birthdate:
                                             DateUtils.dateOnly(selectedDate));
-                                    ApiService().signUp(newUser).then((value) {
-                                      print(value.statusCode);
-                                      if (value.statusCode == 201) {
+                                    ApiService()
+                                        .signUp(newUser)
+                                        .then((userResponse) {
+                                      if (userResponse.statusCode == 201) {
                                         if (role == "coach") {
                                           Gym newCoachGym = gymData.singleWhere(
                                               (element) =>
@@ -456,13 +471,24 @@ class _SignUpPageState extends State<SignUpPage> {
                                               gym: newCoachGym, user: newUser);
                                           ApiService()
                                               .signUpCoach(newCoach)
-                                              .then((value) {
-                                            if (value.statusCode == 201) {
-                                              showDialog(
-                                                  context: context,
-                                                  builder: ((context) =>
-                                                      const Text(
-                                                          "Coach created")));
+                                              .then((coachResponse) {
+                                            if (coachResponse.statusCode ==
+                                                201) {
+                                              var user = json.decode(
+                                                  utf8.decode(
+                                                      coachResponse.bodyBytes));
+                                              prefs?.setString(
+                                                  "token", user['token']);
+                                              prefs?.setString(
+                                                  "id", user['id']);
+                                              Navigator.of(context).push(
+                                                  PageRouteBuilder(
+                                                      pageBuilder: ((context,
+                                                              animation,
+                                                              secondaryAnimation) =>
+                                                          CoachPage(
+                                                            prefs: prefs!,
+                                                          ))));
                                             } else {
                                               showDialog(
                                                   context: context,
@@ -481,13 +507,27 @@ class _SignUpPageState extends State<SignUpPage> {
                                               goal: goalController.text);
                                           ApiService()
                                               .signUpTrainee(newTrainee)
-                                              .then((value) {
-                                            if (value.statusCode == 201)
-                                              showDialog(
-                                                  context: context,
-                                                  builder: ((context) =>
-                                                      Text("Trainee Created")));
-                                            else
+                                              .then((traineeResponse) {
+                                            if (traineeResponse.statusCode ==
+                                                201) {
+                                              Map<String, dynamic> response =
+                                                  json.decode(utf8.decode(
+                                                      traineeResponse
+                                                          .bodyBytes));
+
+                                              prefs?.setString(
+                                                  "token", response['token']);
+                                              prefs?.setString(
+                                                  "id", response['id']);
+                                              Navigator.of(context).push(
+                                                  PageRouteBuilder(
+                                                      pageBuilder: ((context,
+                                                              animation,
+                                                              secondaryAnimation) =>
+                                                          TraineePage(
+                                                            prefs: prefs!,
+                                                          ))));
+                                            } else
                                               showDialog(
                                                 context: context,
                                                 builder: (context) =>
@@ -495,7 +535,8 @@ class _SignUpPageState extends State<SignUpPage> {
                                               );
                                           });
                                         }
-                                      } else if (value.statusCode == 409) {
+                                      } else if (userResponse.statusCode ==
+                                          409) {
                                         showDialog(
                                             context: context,
                                             builder: ((context) => const Text(
@@ -513,9 +554,9 @@ class _SignUpPageState extends State<SignUpPage> {
                               )
                             ],
                           ),
-                        )
-                      ],
-                    ),
+                        ),
+                      )
+                    ],
                   ),
                 ),
               ),

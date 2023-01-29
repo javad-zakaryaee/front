@@ -1,19 +1,39 @@
-import 'package:flutter/material.dart';
-import 'package:front/Navbar.dart';
-import 'API.dart';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+
+import 'package:flutter/material.dart';
+import 'package:front/API.dart';
+import 'package:front/Navbar.dart';
+import 'package:front/models/coach.dart';
+import 'package:front/models/user.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart';
 
 class CoachPage extends StatefulWidget {
-  const CoachPage({Key? key}) : super(key: key);
+  User? user;
+  SharedPreferences prefs;
+  CoachPage({Key? key, this.user, required this.prefs}) : super(key: key);
 
   @override
   _CoachPageState createState() => _CoachPageState();
 }
 
+User? user;
+Coach? coach;
+
 class _CoachPageState extends State<CoachPage> {
-  final basePath = 'localhost:8081/api/v1';
-  final userPath = '/user';
+  Future<void> loadUserAndCoach() async {
+    Response coachResponse =
+        await ApiService().getCoach(widget.prefs.getString("id") ?? "");
+    Map<String, dynamic> mapResponse =
+        (json.decode(utf8.decode(coachResponse.bodyBytes)));
+    user = User.fromJson(mapResponse['user']);
+    coach = Coach(
+        user: user!,
+        id: mapResponse['id'],
+        plans: mapResponse['plans'],
+        trainees: mapResponse['trainees']);
+  }
+
   @override
   Widget build(BuildContext context) {
     var height = MediaQuery.of(context).size.height;
@@ -21,52 +41,48 @@ class _CoachPageState extends State<CoachPage> {
     var isWide = width >= 1200;
     var isTablet = width < 1200 && width > 680;
     var isMobile = width <= 680;
-    var formKey = GlobalKey<FormState>();
-    var emailController = TextEditingController();
-    var passwordController = TextEditingController();
     return Scaffold(
-      resizeToAvoidBottomInset: true,
-      body: Column(children: [
-        Navbar(),
-        Expanded(
-            child: Container(
-                decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                      Color.fromARGB(255, 56, 71, 151),
-                      Color(0xFF277AF6)
-                    ])),
-                child: Center(
-                    child: Card(
-                  elevation: 100,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25)),
-                  child: Container(
-                    width: width * 0.25,
-                    height: height * 0.45,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Container(
-                          alignment: Alignment.center,
-                          width: double.infinity,
-                          height: height * 0.075,
-                          child: const Text(
-                            'صفحه مربی',
-                            textDirection: TextDirection.ltr,
-                            style: TextStyle(
-                                fontFamily: "B Yekan",
-                                fontSize: 20,
-                                color: Colors.black),
-                          ),
-                        ),
-                      ],
+      body: Center(
+        child: FutureBuilder(
+          future: loadUserAndCoach(),
+          builder: (context, snapshot) {
+            switch (snapshot.connectionState) {
+              case ConnectionState.waiting:
+                return CircularProgressIndicator();
+
+              default:
+                return (Column(
+                  children: [
+                    Navbar(
+                      isLoggedIn: true,
+                      username: '${user!.firstName} ${user!.lastName}',
+                      prefs: widget.prefs,
                     ),
-                  ),
-                ))))
-      ]),
+                    Card(
+                        elevation: 50,
+                        child: Container(
+                          width: width * 95,
+                          height: height * 0.8,
+                          child: Column(
+                            children: [
+                              Text(
+                                "مشخصات " +
+                                    user!.firstName +
+                                    " " +
+                                    user!.lastName,
+                                textDirection: TextDirection.rtl,
+                                style: TextStyle(
+                                    color: Colors.black, fontFamily: "B Yekan"),
+                              ),
+                            ],
+                          ),
+                        ))
+                  ],
+                ));
+            }
+          },
+        ),
+      ),
     );
   }
 }

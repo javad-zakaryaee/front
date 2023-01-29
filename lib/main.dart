@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:front/HomePage.dart';
 import 'package:front/LoginPage.dart';
 import 'package:front/SignUpPage.dart';
+import 'package:front/profile.dart';
 
 void main() {
   runApp(const MyApp());

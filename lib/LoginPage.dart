@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:front/CoachPage.dart';
 import 'package:front/Navbar.dart';
-import 'package:front/TraineePage.dart';
+import 'package:front/profile.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'API.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+
+import 'TraineePage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -13,9 +16,18 @@ class LoginPage extends StatefulWidget {
   _LoginPageState createState() => _LoginPageState();
 }
 
+SharedPreferences? prefs;
+
 class _LoginPageState extends State<LoginPage> {
   final basePath = 'localhost:8081/api/v1';
   final userPath = '/user';
+  @override
+  void initState() {
+    super.initState();
+    SharedPreferences.getInstance()
+        .then((value) => setState(() => prefs = value));
+  }
+
   @override
   Widget build(BuildContext context) {
     var height = MediaQuery.of(context).size.height;
@@ -29,7 +41,9 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       body: Column(children: [
-        Navbar(),
+        Navbar(
+          isLoggedIn: false,
+        ),
         Expanded(
             child: Container(
                 decoration: const BoxDecoration(
@@ -52,6 +66,7 @@ class _LoginPageState extends State<LoginPage> {
                       mainAxisSize: MainAxisSize.max,
                       children: [
                         Container(
+                          color: Colors.pink,
                           alignment: Alignment.center,
                           width: double.infinity,
                           height: height * 0.075,
@@ -61,7 +76,7 @@ class _LoginPageState extends State<LoginPage> {
                             style: TextStyle(
                                 fontFamily: "B Yekan",
                                 fontSize: 20,
-                                color: Colors.black),
+                                color: Colors.white),
                           ),
                         ),
                         Form(
@@ -121,24 +136,43 @@ class _LoginPageState extends State<LoginPage> {
                                     ApiService()
                                         .Login(emailController.text,
                                             passwordController.text)
-                                        .then((json) {
-                                      var user = jsonDecode(json);
-                                      var role;
-                                      if (user != null) role = user['role'];
-                                      if (role == 'trainee')
-                                        Navigator.of(context).push(
-                                            PageRouteBuilder(
-                                                pageBuilder: ((context,
-                                                        animation,
-                                                        secondaryAnimation) =>
-                                                    TraineePage())));
-                                      if (role == 'coach')
-                                        Navigator.of(context).push(
-                                            PageRouteBuilder(
-                                                pageBuilder: ((context,
-                                                        animation,
-                                                        secondaryAnimation) =>
-                                                    CoachPage())));
+                                        .then((response) {
+                                      if (response.statusCode == 200) {
+                                        var user = json.decode(
+                                            utf8.decode(response.bodyBytes));
+                                        var role;
+                                        if (user != null) role = user['role'];
+                                        if (role == 'trainee') {
+                                          prefs?.setString(
+                                              "token", user['token']);
+                                          prefs?.setString("id", user['id']);
+                                          Navigator.of(context).push(
+                                              PageRouteBuilder(
+                                                  pageBuilder: ((context,
+                                                          animation,
+                                                          secondaryAnimation) =>
+                                                      TraineePage(
+                                                        prefs: prefs!,
+                                                      ))));
+                                        }
+                                        if (role == 'coach') {
+                                          prefs?.setString(
+                                              "token", user['token']);
+                                          prefs?.setString("id", user['id']);
+                                          Navigator.of(context).push(
+                                              PageRouteBuilder(
+                                                  pageBuilder: ((context,
+                                                          animation,
+                                                          secondaryAnimation) =>
+                                                      CoachPage(
+                                                        prefs: prefs!,
+                                                      ))));
+                                        }
+                                      } else
+                                        showDialog(
+                                            context: context,
+                                            builder: ((context) =>
+                                                Text('Something went wrong')));
                                     });
                                   },
                                   child: Text(

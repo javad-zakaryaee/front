@@ -14,8 +14,10 @@ class ApiService {
   final gymPath = '/gym';
   final coachPath = '/coach';
   final traineePath = '/trainee';
+  final planPath = "/plan";
+  final exercisePath = "/exercise";
 
-  Future<String> Login(String email, String password) async {
+  Future<Response> Login(String email, String password) async {
     final result = await http.post(Uri.parse('$basePath$userPath/login'),
         headers: {
           "Accept": "application/json",
@@ -24,7 +26,7 @@ class ApiService {
         body:
             jsonEncode(<String, String>{'email': email, 'password': password}));
     if (result.statusCode == 200)
-      return result.body;
+      return result;
     else
       return Future.value(null);
   }
@@ -47,7 +49,7 @@ class ApiService {
     return result;
   }
 
-  Future<String> getAllGyms() async {
+  Future<Response> getAllGyms() async {
     final result = await http.get(
       Uri.parse('$basePath$gymPath/get'),
       headers: {
@@ -56,7 +58,7 @@ class ApiService {
       },
     );
     if (result.statusCode == 200)
-      return result.body;
+      return result;
     else
       return Future.value(null);
   }
@@ -69,7 +71,7 @@ class ApiService {
         },
         body: jsonEncode(<String, String>{
           'email': coach.user.email,
-          'gym': coach.gym.id,
+          'gym': coach.gym!.id,
         }));
     return result;
   }
@@ -86,6 +88,90 @@ class ApiService {
           'weight': trainee.weight,
           'goal': trainee.goal
         }));
+    return result;
+  }
+
+  Future<Response> getUser(String token, String id) async {
+    final result = await http.get(
+      Uri.parse('$basePath$userPath/get/$id'),
+      headers: {
+        "Accept": "application/json",
+        "content-type": "application/json",
+        "Authorization": token
+      },
+    );
+    return result;
+  }
+
+  Future<Response> getTrainee(String token, String id) async {
+    final result = await http.get(
+      Uri.parse('$basePath$traineePath/get/$id'),
+      headers: {
+        "Accept": "application/json",
+        "content-type": "application/json",
+        "Authorization": token
+      },
+    );
+    return result;
+  }
+
+  Future<Response> getCoach(String id) async {
+    final result = await http.get(
+      Uri.parse('$basePath$coachPath/get/$id'),
+      headers: {
+        "Accept": "application/json",
+        "content-type": "application/json",
+      },
+    );
+    return result;
+  }
+
+  Future<Response> getPlan(String id) async {
+    final result = await http.get(
+      Uri.parse('$basePath$planPath/get/$id'),
+      headers: {
+        "Accept": "application/json",
+        "content-type": "application/json",
+      },
+    );
+    return result;
+  }
+
+  Future<Response> getExercise(String id) async {
+    final result = await http.get(
+      Uri.parse('$basePath$exercisePath/get/$id'),
+      headers: {
+        "Accept": "application/json",
+        "content-type": "application/json",
+      },
+    );
+    return result;
+  }
+
+  Future<Response> getAllPlans() async {
+    final result = await http.get(
+      Uri.parse('$basePath$planPath/get'),
+      headers: {
+        "Accept": "application/json",
+        "content-type": "application/json",
+      },
+    );
+    return result;
+  }
+
+  Future<Response> updateTrainee(String id, String token, String planId) async {
+    print(id);
+    print(planId);
+    print(token);
+    final result = await http.put(
+      Uri.parse('$basePath$traineePath/update/$id'),
+      headers: {
+        "Accept": "application/json",
+        "content-type": "application/json",
+        "Authorization": token
+      },
+      body: json.encode(<String, dynamic>{'plan': planId}),
+    );
     return result;
   }
 }
