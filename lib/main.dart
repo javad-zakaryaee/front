@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:front/HomePage.dart';
-import 'package:front/LoginPage.dart';
-import 'package:front/SignUpPage.dart';
-import 'package:front/profile.dart';
+import 'package:front/pages/HomePage.dart';
+import 'package:front/pages/LoginPage.dart';
+import 'package:front/pages/SignUpPage.dart';
 
 void main() {
   runApp(const MyApp());

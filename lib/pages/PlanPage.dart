@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:front/CoachPage.dart';
+import 'package:flutter/services.dart';
+import 'package:front/API.dart';
+import 'package:front/pages/CoachPage.dart';
 import 'package:front/Navbar.dart';
 import 'package:front/models/exercise.dart';
 import 'package:front/models/plan.dart';
-import 'package:front/profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'API.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -29,6 +29,7 @@ class _PlanPageState extends State<PlanPage> {
   @override
   void initState() {
     super.initState();
+    SystemChrome.setEnabledSystemUIOverlays([]);
     SharedPreferences.getInstance()
         .then((value) => setState(() => prefs = value));
   }
@@ -70,20 +71,6 @@ class Body extends StatelessWidget {
 
   final double width;
   final double height;
-  Future<List<Exercise>> loadExercises() async {
-    List<Exercise> exercises = [];
-    plan!.exercises!.forEach((element) async {
-      var response =
-          await ApiService().getExercise(element['id']['exerciseId']);
-      var jsonDecode = json.decode(utf8.decode(response.bodyBytes));
-      Exercise newEx = Exercise(
-          id: jsonDecode['id'],
-          name: jsonDecode['name'],
-          description: jsonDecode['description']);
-      exercises.add(newEx);
-    });
-    return exercises;
-  }
 
   int i = -1;
   @override
@@ -121,42 +108,6 @@ class Body extends StatelessWidget {
                         plan!.text,
                         style: TextStyle(color: Colors.black),
                       ),
-                      FutureBuilder(
-                        future: loadExercises(),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting)
-                            return CircularProgressIndicator();
-                          else {
-                            return Column(
-                              children: [
-                                ...snapshot.data!.map(
-                                  (e) {
-                                    i++;
-                                    return Padding(
-                                      padding: const EdgeInsets.all(10.0),
-                                      child: Container(
-                                          color: Colors.blue,
-                                          child: Row(
-                                            children: [
-                                              Column(
-                                                children: [
-                                                  Text(e.name),
-                                                  Text(e.description)
-                                                ],
-                                              ),
-                                              Text(plan!.exercises!
-                                                  .elementAt(i)['repeat']),
-                                            ],
-                                          )),
-                                    );
-                                  },
-                                ).toList()
-                              ],
-                            );
-                          }
-                        },
-                      )
                     ],
                   ),
                 ),

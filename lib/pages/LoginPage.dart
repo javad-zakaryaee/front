@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:front/CoachPage.dart';
+import 'package:flutter/services.dart';
+import 'package:front/API.dart';
+import 'package:front/pages/CoachPage.dart';
 import 'package:front/Navbar.dart';
-import 'package:front/profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'API.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -24,6 +24,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
+    SystemChrome.setEnabledSystemUIOverlays([]);
     SharedPreferences.getInstance()
         .then((value) => setState(() => prefs = value));
   }
@@ -60,8 +61,8 @@ class _LoginPageState extends State<LoginPage> {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25)),
                   child: Container(
-                    width: width * 0.25,
-                    height: height * 0.45,
+                    width: isWide ? width * 0.3 : width * 0.8,
+                    height: height * 0.5,
                     child: Column(
                       mainAxisSize: MainAxisSize.max,
                       children: [

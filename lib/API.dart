@@ -9,7 +9,7 @@ import 'package:http/http.dart';
 import 'package:intl/intl.dart';
 
 class ApiService {
-  final basePath = 'http://localhost:8081/api/v1';
+  final basePath = 'http://localhost:3010/api/v1';
   final userPath = '/user';
   final gymPath = '/gym';
   final coachPath = '/coach';

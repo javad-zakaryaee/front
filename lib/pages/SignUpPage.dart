@@ -1,10 +1,11 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:front/API.dart';
-import 'package:front/CoachPage.dart';
+import 'package:front/pages/CoachPage.dart';
 import 'package:front/Navbar.dart';
-import 'package:front/TraineePage.dart';
+import 'package:front/pages/TraineePage.dart';
 import 'package:front/models/coach.dart';
 import 'package:front/models/gym.dart';
 import 'package:front/models/trainee.dart';
@@ -59,6 +60,7 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   void initState() {
     super.initState();
+    SystemChrome.setEnabledSystemUIOverlays([]);
     SharedPreferences.getInstance()
         .then((value) => setState(() => prefs = value));
     ApiService().getAllGyms().then((value) {
@@ -100,7 +102,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 ])),
             child: Center(
                 child: SizedBox(
-              width: width * 0.5,
+              width: isWide ? width * 0.5 : width * 0.8,
               child: Card(
                 elevation: 100,
                 shape: RoundedRectangleBorder(

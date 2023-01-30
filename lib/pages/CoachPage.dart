@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:front/API.dart';
 import 'package:front/Navbar.dart';
 import 'package:front/models/coach.dart';
@@ -21,6 +22,12 @@ User? user;
 Coach? coach;
 
 class _CoachPageState extends State<CoachPage> {
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setEnabledSystemUIOverlays([]);
+  }
+
   Future<void> loadUserAndCoach() async {
     Response coachResponse =
         await ApiService().getCoach(widget.prefs.getString("id") ?? "");

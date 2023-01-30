@@ -1,10 +1,11 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:front/API.dart';
-import 'package:front/AllPlansPage.dart';
+import 'package:front/pages/AllPlansPage.dart';
 import 'package:front/Navbar.dart';
-import 'package:front/PlanPage.dart';
+import 'package:front/pages/PlanPage.dart';
 import 'package:front/models/trainee.dart';
 import 'package:front/models/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,6 +24,12 @@ User? user;
 Trainee? trainee;
 
 class _TraineePageState extends State<TraineePage> {
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setEnabledSystemUIOverlays([]);
+  }
+
   Future<void> loadUserAndTrainee() async {
     Response traineeResponse = await ApiService().getTrainee(
         widget.prefs.getString("token") ?? "",
@@ -56,6 +63,8 @@ class _TraineePageState extends State<TraineePage> {
               default:
                 bool hasPlan = trainee!.plan != null;
                 return (Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Navbar(
                       isLoggedIn: true,
@@ -65,9 +74,11 @@ class _TraineePageState extends State<TraineePage> {
                     Card(
                         elevation: 50,
                         child: Container(
-                          width: width * 95,
-                          height: height * 0.8,
+                          width: width * 0.5,
+                          height: height * 0.4,
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               Text(
                                 "مشخصات " +
@@ -76,22 +87,27 @@ class _TraineePageState extends State<TraineePage> {
                                     user!.lastName,
                                 textDirection: TextDirection.rtl,
                                 style: TextStyle(
-                                    color: Colors.black, fontFamily: "B Yekan"),
+                                    fontSize: 20,
+                                    color: Colors.black,
+                                    fontFamily: "B Yekan"),
                               ),
                               Text(
                                 "هدف: " + trainee!.goal,
                                 textDirection: TextDirection.rtl,
-                                style: TextStyle(color: Colors.black),
+                                style: TextStyle(
+                                    fontSize: 20, color: Colors.black),
                               ),
                               Text(
                                 "وزن فعلی: " + trainee!.weight.toString(),
                                 textDirection: TextDirection.rtl,
-                                style: TextStyle(color: Colors.black),
+                                style: TextStyle(
+                                    fontSize: 20, color: Colors.black),
                               ),
                               Text(
                                 "قد فعلی: " + trainee!.height.toString(),
                                 textDirection: TextDirection.rtl,
-                                style: TextStyle(color: Colors.black),
+                                style: TextStyle(
+                                    fontSize: 20, color: Colors.black),
                               ),
                               Visibility(
                                   visible: hasPlan,
@@ -121,10 +137,16 @@ class _TraineePageState extends State<TraineePage> {
                                                       user: user,
                                                     ))));
                                       },
-                                      child: Text("get plan")))
+                                      child: Text(
+                                        "اولین برنامه خود را دریافت کنید",
+                                        style: TextStyle(fontSize: 22),
+                                      )))
                             ],
                           ),
-                        ))
+                        )),
+                    SizedBox(
+                      height: height * 0.2,
+                    )
                   ],
                 ));
             }
